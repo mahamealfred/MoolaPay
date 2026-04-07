@@ -8,16 +8,15 @@ import { NavigationContainer } from '@react-navigation/native';
 
 import { createNavigationTheme } from './src/navigation/AppNavigator';
 import { BankingDataProvider } from './src/state/BankingDataContext';
-import { colors } from './src/theme/tokens';
 
 
 function AppRoot() {
-  const { isDarkMode } = useThemeMode();
+  const { isDarkMode, colors } = useThemeMode();
   return (
     <BankingDataProvider>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor={isDarkMode ? '#0B1320' : colors.primary.main}
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.background}
       />
       <NavigationContainer theme={createNavigationTheme(isDarkMode)}>
         <SplashNavigator />

@@ -1,129 +1,196 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Animated, Dimensions, FlatList, Pressable, StyleSheet, Text, View, ViewToken } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-
-import { colors, radii, spacing } from '../theme/tokens';
+import { useColors } from '../theme/ThemeModeContext';
 
 type OnboardingScreenProps = {
   onContinue: () => void;
+  onSignUp: () => void;
 };
 
-export function OnboardingScreen({ onContinue }: OnboardingScreenProps) {
+const { width } = Dimensions.get('window');
+
+const slides = [
+  {
+    id: '1',
+    icon: 'wallet' as const,
+    title: 'Welcome to\nMoolaPay! 👋',
+    description: 'Your all-in-one digital wallet for fast, secure payments and smart money management.',
+  },
+  {
+    id: '2',
+    icon: 'card' as const,
+    title: 'Now Easier to Make\nOnline Payments',
+    description: 'Send and receive money instantly. Pay bills, top up airtime, and manage your finances with ease.',
+  },
+  {
+    id: '3',
+    icon: 'shield-checkmark' as const,
+    title: 'Secure Transactions\n& Reliable Anytime',
+    description: 'Your money is protected with end-to-end encryption and biometric authentication.',
+  },
+  {
+    id: '4',
+    icon: 'bar-chart' as const,
+    title: "Let's Manage Your\nFinancials Now!",
+    description: 'Track spending, set budgets, and get smart insights to grow your wealth.',
+  },
+];
+
+export function OnboardingScreen({ onContinue, onSignUp }: OnboardingScreenProps) {
+  const colors = useColors();
+  const [activeIndex, setActiveIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    if (viewableItems.length > 0 && viewableItems[0].index != null) {
+      setActiveIndex(viewableItems[0].index);
+    }
+  }).current;
+
+  const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
+
+  const handleNext = () => {
+    if (activeIndex < slides.length - 1) {
+      flatListRef.current?.scrollToIndex({ index: activeIndex + 1, animated: true });
+    } else {
+      onContinue();
+    }
+  };
+
   return (
-    <LinearGradient colors={['#17304D', '#0F2238', '#0B1A2B']} style={styles.root}>
-      <View style={styles.topBlock}>
-        <View style={styles.logoWrap}>
-          <Ionicons name="wallet-outline" size={28} color="#F7F3EB" />
-        </View>
-        <Text style={styles.brand}>MoolaPay</Text>
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
+      <FlatList
+        ref={flatListRef}
+        data={slides}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={[styles.slide, { width }]}>
+            <View style={[styles.illustrationArea, { backgroundColor: colors.primarySoft }]}>
+              <View style={[styles.iconCircle, { backgroundColor: colors.primary }]}>
+                <Ionicons name={item.icon} size={48} color="#FFFFFF" />
+              </View>
+            </View>
+            <View style={styles.textArea}>
+              <Text style={[styles.title, { color: colors.textPrimary }]}>{item.title}</Text>
+              <Text style={[styles.description, { color: colors.textSecondary }]}>{item.description}</Text>
+            </View>
+          </View>
+        )}
+      />
+
+      {/* Dots */}
+      <View style={styles.dotsRow}>
+        {slides.map((_, i) => (
+          <View
+            key={i}
+            style={[
+              styles.dot,
+              { backgroundColor: i === activeIndex ? colors.primary : colors.border },
+              i === activeIndex && styles.dotActive,
+            ]}
+          />
+        ))}
       </View>
 
-      <View style={styles.heroCard}>
-        <Text style={styles.eyebrow}>Private banking for modern finance</Text>
-        <Text style={styles.title}>Move money, manage cards, and track growth in one secure place.</Text>
-        <Text style={styles.body}>
-          Built for fast transfers, disciplined spending, and premium account control with a clean banking experience.
-        </Text>
+      {/* Buttons */}
+      <View style={styles.buttonsArea}>
+        <Pressable style={[styles.primaryBtn, { backgroundColor: colors.primary }]} onPress={handleNext}>
+          <Text style={styles.primaryBtnText}>
+            {activeIndex === slides.length - 1 ? 'Get Started' : 'Next'}
+          </Text>
+        </Pressable>
 
-        <View style={styles.featureList}>
-          <View style={styles.featureRow}>
-            <Ionicons name="shield-checkmark" size={18} color="#E6D19D" />
-            <Text style={styles.featureText}>Protected payments and card controls</Text>
-          </View>
-          <View style={styles.featureRow}>
-            <Ionicons name="swap-horizontal" size={18} color="#E6D19D" />
-            <Text style={styles.featureText}>Instant transfers and wallet actions</Text>
-          </View>
-          <View style={styles.featureRow}>
-            <Ionicons name="analytics" size={18} color="#E6D19D" />
-            <Text style={styles.featureText}>Live insights for spending and savings</Text>
-          </View>
-        </View>
+        <Pressable onPress={onContinue}>
+          <Text style={[styles.secondaryText, { color: colors.textSecondary }]}>
+            Already have an account?{' '}
+            <Text style={{ color: colors.primary, fontFamily: 'DMSans_700Bold' }}>Sign In</Text>
+          </Text>
+        </Pressable>
       </View>
-
-      <Pressable style={styles.button} onPress={onContinue}>
-        <Text style={styles.buttonText}>Get Started</Text>
-      </Pressable>
-    </LinearGradient>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing['3xl'],
-    paddingBottom: spacing.xl,
-    justifyContent: 'space-between',
   },
-  topBlock: {
-    gap: spacing.sm,
+  slide: {
+    flex: 1,
+    justifyContent: 'center',
   },
-  logoWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 20,
-    backgroundColor: 'rgba(248, 246, 241, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(248, 246, 241, 0.18)',
+  illustrationArea: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 24,
+    marginTop: 60,
+    borderRadius: 32,
+  },
+  iconCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  brand: {
-    color: '#F7F3EB',
-    fontFamily: 'Sora_700Bold',
-    fontSize: 24,
-  },
-  heroCard: {
-    borderRadius: radii.xl,
-    backgroundColor: 'rgba(248, 246, 241, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(248, 246, 241, 0.14)',
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
-  eyebrow: {
-    color: '#E6D19D',
-    fontFamily: 'DMSans_700Bold',
-    fontSize: 12,
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
+  textArea: {
+    paddingHorizontal: 32,
+    paddingTop: 32,
+    paddingBottom: 16,
+    gap: 12,
   },
   title: {
-    color: '#F7F3EB',
+    fontSize: 28,
     fontFamily: 'Sora_700Bold',
-    fontSize: 30,
-    lineHeight: 40,
+    lineHeight: 38,
   },
-  body: {
-    color: '#C3D0DD',
-    fontFamily: 'DMSans_500Medium',
+  description: {
     fontSize: 15,
+    fontFamily: 'DMSans_500Medium',
     lineHeight: 24,
   },
-  featureList: {
-    gap: spacing.sm,
-  },
-  featureRow: {
+  dotsRow: {
     flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  dotActive: {
+    width: 24,
+    borderRadius: 4,
+  },
+  buttonsArea: {
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    gap: 16,
     alignItems: 'center',
-    gap: spacing.sm,
   },
-  featureText: {
-    flex: 1,
-    color: '#E7EDF3',
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 14,
-  },
-  button: {
-    backgroundColor: '#E6D19D',
-    borderRadius: radii.button,
+  primaryBtn: {
+    width: '100%',
+    borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
   },
-  buttonText: {
-    color: '#2F240F',
+  primaryBtnText: {
+    color: '#FFFFFF',
     fontFamily: 'Sora_700Bold',
     fontSize: 16,
+  },
+  secondaryText: {
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 14,
   },
 });

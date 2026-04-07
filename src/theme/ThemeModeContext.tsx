@@ -1,8 +1,10 @@
 import { createContext, ReactNode, useContext, useMemo, useState } from 'react';
+import { lightColors, darkColors, ThemeColors } from './tokens';
 
 type ThemeModeContextValue = {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
+  colors: ThemeColors;
 };
 
 const ThemeModeContext = createContext<ThemeModeContextValue | undefined>(undefined);
@@ -18,6 +20,7 @@ export function ThemeModeProvider({ children }: ThemeModeProviderProps) {
     () => ({
       isDarkMode,
       toggleDarkMode: () => setIsDarkMode((prev) => !prev),
+      colors: isDarkMode ? darkColors : lightColors,
     }),
     [isDarkMode],
   );
@@ -31,4 +34,9 @@ export function useThemeMode() {
     throw new Error('useThemeMode must be used within ThemeModeProvider');
   }
   return context;
+}
+
+export function useColors(): ThemeColors {
+  const { colors } = useThemeMode();
+  return colors;
 }

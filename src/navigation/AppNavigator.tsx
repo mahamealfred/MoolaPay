@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DefaultTheme, Theme } from '@react-navigation/native';
 import { createBottomTabNavigator, BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -14,21 +14,44 @@ import { PinEntryScreen } from '../screens/PinEntryScreen';
 import { PaymentsScreen } from '../screens/PaymentsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { SignInScreen } from '../screens/SignInScreen';
-import { useThemeMode } from '../theme/ThemeModeContext';
-import { colors } from '../theme/tokens';
+import { SignUpScreen } from '../screens/SignUpScreen';
+import { CreatePinScreen } from '../screens/CreatePinScreen';
+import { FingerprintScreen } from '../screens/FingerprintScreen';
+import { NotificationsScreen } from '../screens/NotificationsScreen';
+import { SendMoneyScreen } from '../screens/SendMoneyScreen';
+import { RequestMoneyScreen } from '../screens/RequestMoneyScreen';
+import { TransferToBankScreen } from '../screens/TransferToBankScreen';
+import { SplitBillScreen } from '../screens/SplitBillScreen';
+import { InvoiceScreen } from '../screens/InvoiceScreen';
+import { ActivityScreen } from '../screens/ActivityScreen';
+import { QRCodeScreen } from '../screens/QRCodeScreen';
+import { useThemeMode, useColors } from '../theme/ThemeModeContext';
+import { lightColors, darkColors } from '../theme/tokens';
 
 // ============== Types ==============
 export type RootTabsParamList = {
   Home: undefined;
   Payments:
-    | {
-        initialMode?: 'transfer' | 'bill';
-        initialService?: string;
-      }
-    | undefined;
+  | {
+    initialMode?: 'transfer' | 'bill';
+    initialService?: string;
+  }
+  | undefined;
   Cards: undefined;
   Insights: undefined;
   Profile: undefined;
+};
+
+export type RootStackParamList = {
+  MainTabs: undefined;
+  Notifications: undefined;
+  SendMoney: undefined;
+  RequestMoney: undefined;
+  TransferToBank: undefined;
+  SplitBill: undefined;
+  Invoice: undefined;
+  Activity: undefined;
+  QRCode: undefined;
 };
 
 type TabRoute = keyof RootTabsParamList;
@@ -36,65 +59,77 @@ type TabRoute = keyof RootTabsParamList;
 type EntryStackParamList = {
   Onboarding: undefined;
   SignIn: undefined;
+  SignUp: undefined;
   PinEntry: undefined;
+  CreatePin: undefined;
+  Fingerprint: undefined;
 };
 
 function getTabIcon(routeName: TabRoute): keyof typeof Ionicons.glyphMap {
   switch (routeName) {
     case 'Home':
-      return 'grid';
+      return 'home';
     case 'Payments':
       return 'swap-horizontal';
     case 'Cards':
       return 'card';
     case 'Insights':
-      return 'analytics';
+      return 'stats-chart';
     default:
       return 'person';
   }
 }
 
 // ============== Theme ==============
-export const createNavigationTheme = (isDarkMode: boolean): Theme => ({
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: isDarkMode ? '#0B1320' : colors.primary.main,
-    card: isDarkMode ? '#111C2E' : colors.panel,
-    text: isDarkMode ? '#F4F8FF' : colors.textPrimary,
-    border: isDarkMode ? '#20324D' : colors.line,
-    primary: colors.mint,
-    notification: colors.mint,
-  },
-});
+export const createNavigationTheme = (isDarkMode: boolean): Theme => {
+  const c = isDarkMode ? darkColors : lightColors;
+  return {
+    ...DefaultTheme,
+    dark: isDarkMode,
+    colors: {
+      ...DefaultTheme.colors,
+      background: c.background,
+      card: c.surface,
+      text: c.textPrimary,
+      border: c.border,
+      primary: c.primary,
+      notification: c.primary,
+    },
+  };
+};
 
-const createTabBarStyles = (isDarkMode: boolean) => ({
-  backgroundColor: isDarkMode ? '#111C2E' : colors.primary.dark,
-  borderTopColor: isDarkMode ? '#20324D' : '#355AA3',
-  borderTopWidth: 1,
-  borderRadius: 24,
-  height: Platform.OS === 'ios' ? 86 : 74,
-  paddingBottom: Platform.OS === 'ios' ? 18 : 10,
-  paddingTop: 10,
-  paddingHorizontal: 10,
-  // Removed absolute positioning and margins to respect safe area and device navigation
-  elevation: 0,
-  shadowColor: isDarkMode ? '#000000' : colors.primary.dark,
-  shadowOffset: { width: 0, height: 12 },
-  shadowOpacity: isDarkMode ? 0.35 : 0.12,
-  shadowRadius: 18,
-} as const);
+const createTabBarStyles = (isDarkMode: boolean, bottomInset: number) => {
+  const c = isDarkMode ? darkColors : lightColors;
+  const paddingBottom = Math.max(Platform.OS === 'ios' ? 24 : 8, bottomInset);
+  const baseHeight = Platform.OS === 'ios' ? 64 : 60;
+
+  return {
+    backgroundColor: c.tabBar,
+    borderTopColor: c.tabBarBorder,
+    borderTopWidth: 1,
+    height: baseHeight + paddingBottom,
+    paddingBottom: paddingBottom,
+    paddingTop: 8,
+    elevation: 0,
+    shadowColor: c.shadow,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  } as const;
+};
 
 const createScreenOptions = (
   routeName: TabRoute,
   isDarkMode: boolean,
+  bottomInset: number
 ): BottomTabNavigationOptions => {
-  const activeTint = colors.mint;
-  const inactiveTint = isDarkMode ? '#8EA3BF' : '#8D98A6';
+  const c = isDarkMode ? darkColors : lightColors;
+  const activeTint = c.tabBarActive;
+  const inactiveTint = c.tabBarInactive;
 
   return {
     headerShown: false,
-    tabBarStyle: createTabBarStyles(isDarkMode),
+    tabBarStyle: createTabBarStyles(isDarkMode, bottomInset),
     tabBarActiveTintColor: activeTint,
     tabBarInactiveTintColor: inactiveTint,
     tabBarShowLabel: true,
@@ -110,11 +145,11 @@ const createScreenOptions = (
       <View
         style={
           color === activeTint
-            ? [styles.activeIconWrap, isDarkMode && styles.activeIconWrapDark]
+            ? [styles.activeIconWrap, { backgroundColor: isDarkMode ? 'rgba(59,130,246,0.15)' : 'rgba(37,99,235,0.1)' }]
             : styles.iconWrap
         }
       >
-        <Ionicons name={getTabIcon(routeName)} size={size} color={color} />
+        <Ionicons name={getTabIcon(routeName)} size={22} color={color} />
       </View>
     ),
   };
@@ -123,12 +158,14 @@ const createScreenOptions = (
 // ============== Navigator Component ==============
 const Tab = createBottomTabNavigator<RootTabsParamList>();
 const Stack = createNativeStackNavigator<EntryStackParamList>();
+const AppStack = createNativeStackNavigator<RootStackParamList>();
 
-function MainTabs() {
+function TabNavigator() {
   const { isDarkMode } = useThemeMode();
+  const insets = useSafeAreaInsets();
 
   return (
-    <Tab.Navigator screenOptions={({ route }) => createScreenOptions(route.name as TabRoute, isDarkMode)}>
+    <Tab.Navigator screenOptions={({ route }) => createScreenOptions(route.name as TabRoute, isDarkMode, insets.bottom)}>
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Home' }} />
       <Tab.Screen name="Payments" component={PaymentsScreen} options={{ title: 'Payments' }} />
       <Tab.Screen name="Cards" component={CardsScreen} options={{ title: 'Cards' }} />
@@ -138,46 +175,116 @@ function MainTabs() {
   );
 }
 
+function MainAppStack() {
+  return (
+    <AppStack.Navigator screenOptions={{ headerShown: false }}>
+      <AppStack.Screen name="MainTabs" component={TabNavigator} />
+      <AppStack.Screen name="Notifications" component={NotificationsScreen} />
+      <AppStack.Screen name="SendMoney" component={SendMoneyScreen} />
+      <AppStack.Screen name="RequestMoney" component={RequestMoneyScreen} />
+      <AppStack.Screen name="TransferToBank" component={TransferToBankScreen} />
+      <AppStack.Screen name="SplitBill" component={SplitBillScreen} />
+      <AppStack.Screen name="Invoice" component={InvoiceScreen} />
+      <AppStack.Screen name="Activity" component={ActivityScreen} />
+      <AppStack.Screen name="QRCode" component={QRCodeScreen} />
+    </AppStack.Navigator>
+  );
+}
+
 export function AppNavigator() {
   const { isDarkMode } = useThemeMode();
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [showSignIn, setShowSignIn] = useState(false);
+  const [showSignUp, setShowSignUp] = useState(false);
   const [pendingIdentifier, setPendingIdentifier] = useState('');
+  const [showCreatePin, setShowCreatePin] = useState(false);
+  const [showFingerprint, setShowFingerprint] = useState(false);
+
+  if (isSignedIn) {
+    return (
+      <SafeAreaProvider>
+        <MainAppStack />
+      </SafeAreaProvider>
+    );
+  }
 
   return (
     <SafeAreaProvider>
-      {isSignedIn ? (
-        <MainTabs />
-      ) : (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {!showSignIn ? (
-            <Stack.Screen name="Onboarding">
-              {() => <OnboardingScreen onContinue={() => setShowSignIn(true)} />}
-            </Stack.Screen>
-          ) : null}
-          {showSignIn && !pendingIdentifier ? (
-            <Stack.Screen name="SignIn">
-              {() => (
-                <SignInScreen
-                  onBack={() => setShowSignIn(false)}
-                  onSignIn={(identifier) => setPendingIdentifier(identifier)}
-                />
-              )}
-            </Stack.Screen>
-          ) : null}
-          {showSignIn && pendingIdentifier ? (
-            <Stack.Screen name="PinEntry">
-              {() => (
-                <PinEntryScreen
-                  identifier={pendingIdentifier}
-                  onBack={() => setPendingIdentifier('')}
-                  onVerified={() => setIsSignedIn(true)}
-                />
-              )}
-            </Stack.Screen>
-          ) : null}
-        </Stack.Navigator>
-      )}
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {!showSignIn && !showSignUp ? (
+          <Stack.Screen name="Onboarding">
+            {() => (
+              <OnboardingScreen
+                onContinue={() => setShowSignIn(true)}
+                onSignUp={() => setShowSignUp(true)}
+              />
+            )}
+          </Stack.Screen>
+        ) : null}
+
+        {showSignUp && !showCreatePin ? (
+          <Stack.Screen name="SignUp">
+            {() => (
+              <SignUpScreen
+                onBack={() => setShowSignUp(false)}
+                onSignUp={(identifier) => {
+                  setPendingIdentifier(identifier);
+                  setShowCreatePin(true);
+                }}
+              />
+            )}
+          </Stack.Screen>
+        ) : null}
+
+        {showCreatePin && !showFingerprint ? (
+          <Stack.Screen name="CreatePin">
+            {() => (
+              <CreatePinScreen
+                onBack={() => setShowCreatePin(false)}
+                onPinCreated={() => setShowFingerprint(true)}
+              />
+            )}
+          </Stack.Screen>
+        ) : null}
+
+        {showFingerprint ? (
+          <Stack.Screen name="Fingerprint">
+            {() => (
+              <FingerprintScreen
+                onBack={() => setShowFingerprint(false)}
+                onComplete={() => setIsSignedIn(true)}
+              />
+            )}
+          </Stack.Screen>
+        ) : null}
+
+        {showSignIn && !pendingIdentifier ? (
+          <Stack.Screen name="SignIn">
+            {() => (
+              <SignInScreen
+                onBack={() => setShowSignIn(false)}
+                onSignIn={(identifier) => setPendingIdentifier(identifier)}
+                onSignUp={() => {
+                  setShowSignIn(false);
+                  setShowSignUp(true);
+                }}
+              />
+            )}
+          </Stack.Screen>
+        ) : null}
+
+        {showSignIn && pendingIdentifier ? (
+          <Stack.Screen name="PinEntry">
+            {() => (
+              <PinEntryScreen
+                identifier={pendingIdentifier}
+                onBack={() => setPendingIdentifier('')}
+                onVerified={() => setIsSignedIn(true)}
+              />
+            )}
+          </Stack.Screen>
+        ) : null}
+      </Stack.Navigator>
     </SafeAreaProvider>
   );
 }
@@ -187,21 +294,17 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   iconWrap: {
-    width: 34,
-    height: 34,
+    width: 36,
+    height: 36,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   activeIconWrap: {
-    width: 34,
-    height: 34,
+    width: 36,
+    height: 36,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(21, 107, 91, 0.12)',
-  },
-  activeIconWrapDark: {
-    backgroundColor: 'rgba(21, 107, 91, 0.24)',
   },
 });

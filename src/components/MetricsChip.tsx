@@ -1,60 +1,36 @@
-// components/MetricsChip.tsx
-import { StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { formatCurrency, formatNumber, formatPercentage } from '../utils/format';
-import { colors, spacing, typography, radii } from '../theme/tokens';
+import { StyleSheet, Text, View } from 'react-native';
+import { useColors } from '../theme/ThemeModeContext';
 
-interface MetricsChipProps {
+type MetricsChipProps = {
   label: string;
-  value: number;
-  format?: 'currency' | 'percentage' | 'number';
-  style?: ViewStyle;
-}
+  value: string;
+};
 
-export function MetricsChip({ label, value, format = 'number', style }: MetricsChipProps) {
-  const formattedValue = () => {
-    switch (format) {
-      case 'currency':
-        return formatCurrency(Math.abs(value));
-      case 'percentage':
-        return formatPercentage(value);
-      default:
-        return formatNumber(value);
-    }
-  };
-
-  const isNegative = value < 0;
-  const displayValue = isNegative ? `-${formattedValue()}` : formattedValue();
+export function MetricsChip({ label, value }: MetricsChipProps) {
+  const colors = useColors();
 
   return (
-    <View style={[styles.container, style]}>
-      <Text style={styles.label}>{label}</Text>
-      <Text style={[styles.value, isNegative && styles.negativeValue]}>
-        {displayValue}
-      </Text>
+    <View style={[styles.chip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>
+      <Text style={[styles.value, { color: colors.textPrimary }]}>{value}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.surface.secondary,
-    borderRadius: radii.md,
+  chip: {
+    flex: 1,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: colors.border.primary,
-    padding: spacing.sm,
+    padding: 12,
   },
   label: {
-    color: colors.text.secondary,
-    fontFamily: typography.fonts.medium,
-    fontSize: typography.sizes.xs,
-    marginBottom: spacing.xs,
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 11,
   },
   value: {
-    color: colors.text.primary,
-    fontFamily: typography.fonts.bold,
-    fontSize: typography.sizes.lg,
-  },
-  negativeValue: {
-    color: colors.accent.error,
+    marginTop: 4,
+    fontFamily: 'Sora_700Bold',
+    fontSize: 14,
   },
 });

@@ -1,112 +1,193 @@
-// ============== Color System ==============
+// ============== Light & Dark Color Sets ==============
+export const lightColors = {
+  // Primary Brand - Bright Blue
+  primary: '#2563EB',
+  primaryDark: '#1D4ED8',
+  primaryLight: '#3B82F6',
+  primarySoft: '#EFF6FF',
+
+  // Backgrounds
+  background: '#FFFFFF',
+  backgroundSecondary: '#F8FAFC',
+  backgroundTertiary: '#F1F5F9',
+
+  // Surfaces (Cards, Panels)
+  surface: '#FFFFFF',
+  surfaceSecondary: '#F8FAFC',
+  surfaceElevated: '#FFFFFF',
+
+  // Text
+  textPrimary: '#0F172A',
+  textSecondary: '#64748B',
+  textTertiary: '#94A3B8',
+  textInverse: '#FFFFFF',
+
+  // Borders
+  border: '#E2E8F0',
+  borderLight: '#F1F5F9',
+  borderFocus: '#2563EB',
+
+  // Status
+  success: '#10B981',
+  successLight: '#D1FAE5',
+  warning: '#F59E0B',
+  warningLight: '#FEF3C7',
+  error: '#EF4444',
+  errorLight: '#FEE2E2',
+  info: '#3B82F6',
+
+  // Misc
+  shadow: 'rgba(15, 23, 42, 0.08)',
+  shadowMedium: 'rgba(15, 23, 42, 0.12)',
+  overlay: 'rgba(0, 0, 0, 0.5)',
+  tabBar: '#FFFFFF',
+  tabBarBorder: '#E2E8F0',
+  tabBarActive: '#2563EB',
+  tabBarInactive: '#94A3B8',
+  inputBackground: '#F8FAFC',
+  cardGradientStart: '#2563EB',
+  cardGradientEnd: '#1D4ED8',
+  shimmer: '#E2E8F0',
+};
+
+export const darkColors = {
+  // Primary Brand - Bright Blue
+  primary: '#3B82F6',
+  primaryDark: '#2563EB',
+  primaryLight: '#60A5FA',
+  primarySoft: '#1E293B',
+
+  // Backgrounds
+  background: '#0B1120',
+  backgroundSecondary: '#111827',
+  backgroundTertiary: '#1E293B',
+
+  // Surfaces (Cards, Panels)
+  surface: '#111827',
+  surfaceSecondary: '#1E293B',
+  surfaceElevated: '#1E293B',
+
+  // Text
+  textPrimary: '#F1F5F9',
+  textSecondary: '#94A3B8',
+  textTertiary: '#64748B',
+  textInverse: '#0F172A',
+
+  // Borders
+  border: '#1E293B',
+  borderLight: '#334155',
+  borderFocus: '#3B82F6',
+
+  // Status
+  success: '#10B981',
+  successLight: '#064E3B',
+  warning: '#F59E0B',
+  warningLight: '#78350F',
+  error: '#EF4444',
+  errorLight: '#7F1D1D',
+  info: '#3B82F6',
+
+  // Misc
+  shadow: 'rgba(0, 0, 0, 0.3)',
+  shadowMedium: 'rgba(0, 0, 0, 0.5)',
+  overlay: 'rgba(0, 0, 0, 0.7)',
+  tabBar: '#111827',
+  tabBarBorder: '#1E293B',
+  tabBarActive: '#3B82F6',
+  tabBarInactive: '#64748B',
+  inputBackground: '#1E293B',
+  cardGradientStart: '#1E293B',
+  cardGradientEnd: '#111827',
+  shimmer: '#1E293B',
+};
+
+export type ThemeColors = typeof lightColors;
+
+// Backward compat aliases (used by older components during migration)
 export const colors = {
-  // Primary Brand Colors - BK Navy
   primary: {
-    main: '#17304D',
-    dark: '#0B1A2B',
-    light: '#0F2238',
+    main: '#2563EB',
+    dark: '#1D4ED8',
+    light: '#3B82F6',
     contrast: '#FFFFFF',
   },
-  
-  // Secondary Colors - BK Gold
   secondary: {
-    main: '#F5B800',
-    dark: '#D4A000',
-    light: '#FAD348',
+    main: '#F59E0B',
+    dark: '#D97706',
+    light: '#FBBF24',
   },
-  
-  // Accent Colors
   accent: {
-    success: '#00813D',
-    warning: '#F5B800',
-    error: '#C93030',
-    info: '#1560BD',
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
   },
-  
-  // Background Colors
   background: {
-    primary: '#17304D',
-    secondary: '#0F2238',
-    tertiary: '#0B1A2B',
-    inverse: '#081421',
+    primary: '#FFFFFF',
+    secondary: '#F8FAFC',
+    tertiary: '#F1F5F9',
+    inverse: '#0F172A',
   },
-  
-  // Surface Colors (Cards, Modals, etc.)
   surface: {
-    primary: '#17304D', // BK Navy (matches background.primary)
-    secondary: '#0F2238',
-    tertiary: '#0B1A2B',
-    inverse: '#003087',
+    primary: '#FFFFFF',
+    secondary: '#F8FAFC',
+    tertiary: '#F1F5F9',
+    inverse: '#0F172A',
   },
-  
-  // Text Colors
   text: {
-    primary: '#F0F4FA', // Light for dark backgrounds
-    secondary: '#B6C3D6', // Softer light
-    tertiary: '#8FA3BC',
+    primary: '#0F172A',
+    secondary: '#64748B',
+    tertiary: '#94A3B8',
     inverse: '#FFFFFF',
-    link: '#F5B800', // Use gold for links
+    link: '#2563EB',
   },
-  
-  // Border Colors
   border: {
-    primary: '#D2DCE8',
-    secondary: '#E6EDF6',
-    focus: '#003087',
-    error: '#C93030',
+    primary: '#E2E8F0',
+    secondary: '#F1F5F9',
+    focus: '#2563EB',
+    error: '#EF4444',
   },
-  
-  // Status Colors
   status: {
-    success: '#00813D',
-    warning: '#F5B800',
-    error: '#C93030',
-    info: '#1560BD',
-    neutral: '#9CA3AF',
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
+    neutral: '#94A3B8',
   },
-  
-  // Chart/Data Visualization Colors
   chart: {
-    primary: '#003087',
-    secondary: '#F5B800',
-    tertiary: '#00813D',
-    quaternary: '#C93030',
-    quinary: '#1560BD',
+    primary: '#2563EB',
+    secondary: '#F59E0B',
+    tertiary: '#10B981',
+    quaternary: '#EF4444',
+    quinary: '#8B5CF6',
   },
-  
-  // Gradients
   gradients: {
-    primary: ['#17304D', '#0F2238'],
-    hero: ['#17304D', '#0B1A2B'],
-    accent: ['#F5B800', '#D4A000'],
+    primary: ['#2563EB', '#1D4ED8'] as string[],
+    hero: ['#2563EB', '#1E40AF'] as string[],
+    accent: ['#F59E0B', '#D97706'] as string[],
   },
-  
-  // Shadow Colors
   shadow: {
-    light: 'rgba(0, 31, 94, 0.06)',
-    medium: 'rgba(0, 31, 94, 0.12)',
-    dark: 'rgba(0, 31, 94, 0.20)',
+    light: 'rgba(15, 23, 42, 0.06)',
+    medium: 'rgba(15, 23, 42, 0.12)',
+    dark: 'rgba(15, 23, 42, 0.20)',
   },
-  
-  // Overlay Colors
   overlay: {
     light: 'rgba(0, 0, 0, 0.3)',
     dark: 'rgba(0, 0, 0, 0.7)',
   },
-
-  // Backward-compatible aliases for older components
-  bg: '#17304D',
-  panel: '#17304D', // match new surface.primary
-  panelSoft: '#0F2238',
-  card: '#17304D',
-  textPrimary: '#F0F4FA',
-  textSecondary: '#B6C3D6',
-  textDark: '#F0F4FA',
-  mint: '#17304D',
-  coral: '#C93030',
-  amber: '#F5B800',
-  sky: '#1560BD',
-  line: '#D2DCE8',
+  // Backward-compatible flat aliases
+  bg: '#FFFFFF',
+  panel: '#FFFFFF',
+  panelSoft: '#F8FAFC',
+  card: '#FFFFFF',
+  textPrimary: '#0F172A',
+  textSecondary: '#64748B',
+  textDark: '#0F172A',
+  mint: '#2563EB',
+  coral: '#EF4444',
+  amber: '#F59E0B',
+  sky: '#3B82F6',
+  line: '#E2E8F0',
 };
 
 // ============== Typography ==============
@@ -118,7 +199,6 @@ export const typography = {
     bold: 'Inter_700Bold',
     mono: 'SpaceMono_400Regular',
   },
-  
   sizes: {
     xs: 12,
     sm: 14,
@@ -129,7 +209,6 @@ export const typography = {
     '3xl': 30,
     '4xl': 36,
   },
-  
   lineHeights: {
     xs: 16,
     sm: 20,
@@ -140,7 +219,6 @@ export const typography = {
     '3xl': 44,
     '4xl': 52,
   },
-  
   weights: {
     regular: '400',
     medium: '500',
@@ -171,8 +249,6 @@ export const radii = {
   xl: 24,
   '2xl': 32,
   full: 9999,
-  
-  // Semantic aliases
   button: 12,
   card: 16,
   modal: 24,
@@ -182,30 +258,30 @@ export const radii = {
 // ============== Shadows ==============
 export const shadows = {
   sm: {
-    shadowColor: colors.shadow.light,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 1,
+    shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
   },
   md: {
-    shadowColor: colors.shadow.medium,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 4,
   },
   lg: {
-    shadowColor: colors.shadow.medium,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 8,
   },
   xl: {
-    shadowColor: colors.shadow.dark,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 1,
+    shadowOpacity: 0.15,
     shadowRadius: 16,
     elevation: 12,
   },
@@ -231,7 +307,7 @@ export const animation = {
 export const layout = {
   screen: {
     padding: spacing.md,
-    maxWidth: 480, // For responsive design
+    maxWidth: 480,
   },
   header: {
     height: 60,
@@ -256,7 +332,7 @@ export const zIndex = {
   tooltip: 1600,
 };
 
-// ============== Breakpoints (for responsive design) ==============
+// ============== Breakpoints ==============
 export const breakpoints = {
   sm: 375,
   md: 768,
@@ -265,7 +341,7 @@ export const breakpoints = {
   '2xl': 1536,
 };
 
-// ============== Export all themes ==============
+// ============== Export all ==============
 export const theme = {
   colors,
   typography,

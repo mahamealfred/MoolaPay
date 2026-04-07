@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-
-import { GradientShell } from '../components/GradientShell';
-import { colors, radii, spacing } from '../theme/tokens';
+import { useColors } from '../theme/ThemeModeContext';
 
 type PinEntryScreenProps = {
   identifier: string;
@@ -15,6 +14,7 @@ const PIN_LENGTH = 4;
 const DEMO_PIN = '2026';
 
 export function PinEntryScreen({ identifier, onBack, onVerified }: PinEntryScreenProps) {
+  const colors = useColors();
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
 
@@ -23,20 +23,13 @@ export function PinEntryScreen({ identifier, onBack, onVerified }: PinEntryScree
       const [name, domain] = identifier.split('@');
       return `${name.slice(0, 2)}***@${domain}`;
     }
-
-    if (identifier.length <= 4) {
-      return identifier;
-    }
-
+    if (identifier.length <= 4) return identifier;
     return `${identifier.slice(0, 2)}***${identifier.slice(-2)}`;
   }, [identifier]);
 
   const appendDigit = (digit: string) => {
-    if (pin.length >= PIN_LENGTH) {
-      return;
-    }
-
-    const nextPin = `${pin}${digit}`;
+    if (pin.length >= PIN_LENGTH) return;
+    const nextPin = pin + digit;
     setPin(nextPin);
     setError('');
 
@@ -45,163 +38,144 @@ export function PinEntryScreen({ identifier, onBack, onVerified }: PinEntryScree
         onVerified();
         return;
       }
-
-      setError('Incorrect secure PIN. Use 2026 for this demo flow.');
+      setError('Incorrect PIN. Use 2026 for demo.');
       setPin('');
     }
   };
 
   const removeDigit = () => {
-    setPin((current) => current.slice(0, -1));
+    setPin((c) => c.slice(0, -1));
     setError('');
   };
 
   return (
-    <GradientShell>
-      <View style={styles.root}>
-        <Pressable style={styles.backBtn} onPress={onBack}>
-          <Ionicons name="arrow-back" size={18} color={colors.textPrimary} />
-        </Pressable>
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
+      <Pressable style={[styles.backBtn, { backgroundColor: colors.surfaceSecondary, borderColor: colors.border }]} onPress={onBack}>
+        <Ionicons name="arrow-back" size={20} color={colors.textPrimary} />
+      </Pressable>
 
-        <View style={styles.header}>
-          <Text style={styles.eyebrow}>Secure verification</Text>
-          <Text style={styles.title}>Enter your 4-digit secure PIN</Text>
-          <Text style={styles.subtitle}>Verifying session for {maskedIdentifier}</Text>
+      <View style={styles.header}>
+        <View style={[styles.lockIcon, { backgroundColor: colors.primarySoft }]}>
+          <Ionicons name="lock-closed" size={28} color={colors.primary} />
         </View>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>Enter Your PIN</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          Verifying session for {maskedIdentifier}
+        </Text>
+        <Text style={[styles.hint, { color: colors.primary }]}>Demo PIN: 2026</Text>
+      </View>
 
-        <View style={styles.pinCard}>
-          <View style={styles.pinDots}>
-            {Array.from({ length: PIN_LENGTH }).map((_, index) => (
-              <View key={index} style={[styles.pinDot, index < pin.length && styles.pinDotActive]} />
-            ))}
-          </View>
-          <Text style={styles.helperText}>Demo PIN: 2026</Text>
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-        </View>
+      {/* PIN Dots */}
+      <View style={styles.pinDots}>
+        {Array.from({ length: PIN_LENGTH }).map((_, i) => (
+          <View
+            key={i}
+            style={[
+              styles.pinDot,
+              {
+                backgroundColor: i < pin.length ? colors.primary : 'transparent',
+                borderColor: i < pin.length ? colors.primary : colors.border,
+              },
+            ]}
+          />
+        ))}
+      </View>
+      {error ? <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text> : null}
 
-        <View style={styles.keypad}>
-          {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'backspace'].map((key) => {
-            if (!key) {
-              return <View key="empty" style={styles.keypadSpacer} />;
-            }
-
-            if (key === 'backspace') {
-              return (
-                <Pressable key={key} style={styles.keypadKey} onPress={removeDigit}>
-                  <Ionicons name="backspace-outline" size={22} color={colors.textPrimary} />
-                </Pressable>
-              );
-            }
-
+      {/* Keypad */}
+      <View style={styles.keypad}>
+        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'back'].map((key) => {
+          if (!key) return <View key="empty" style={styles.keypadSpacer} />;
+          if (key === 'back') {
             return (
-              <Pressable key={key} style={styles.keypadKey} onPress={() => appendDigit(key)}>
-                <Text style={styles.keypadText}>{key}</Text>
+              <Pressable key={key} style={[styles.keypadKey, { backgroundColor: colors.surfaceSecondary }]} onPress={removeDigit}>
+                <Ionicons name="backspace-outline" size={24} color={colors.textPrimary} />
               </Pressable>
             );
-          })}
-        </View>
+          }
+          return (
+            <Pressable key={key} style={[styles.keypadKey, { backgroundColor: colors.surfaceSecondary }]} onPress={() => appendDigit(key)}>
+              <Text style={[styles.keypadText, { color: colors.textPrimary }]}>{key}</Text>
+            </Pressable>
+          );
+        })}
       </View>
-    </GradientShell>
+
+      <Pressable>
+        <Text style={[styles.forgotPin, { color: colors.primary }]}>Forgot PIN?</Text>
+      </Pressable>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    padding: spacing.md,
-    gap: spacing.lg,
+    paddingHorizontal: 24,
+    paddingTop: 16,
   },
   backBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    backgroundColor: colors.panel,
-    borderWidth: 1,
-    borderColor: colors.line,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 44, height: 44, borderRadius: 14, borderWidth: 1,
+    alignItems: 'center', justifyContent: 'center',
   },
   header: {
-    gap: spacing.sm,
-    marginTop: spacing.sm,
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 32,
   },
-  eyebrow: {
-    color: colors.amber,
-    fontFamily: 'DMSans_700Bold',
-    fontSize: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
+  lockIcon: {
+    width: 64, height: 64, borderRadius: 32,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 8,
   },
   title: {
-    color: colors.textPrimary,
-    fontFamily: 'Sora_700Bold',
-    fontSize: 30,
-    lineHeight: 40,
+    fontSize: 24, fontFamily: 'Sora_700Bold',
   },
   subtitle: {
-    color: colors.textSecondary,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 15,
-    lineHeight: 24,
+    fontSize: 14, fontFamily: 'DMSans_500Medium', textAlign: 'center',
   },
-  pinCard: {
-    backgroundColor: colors.panel,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: radii.card,
-    padding: spacing.lg,
-    gap: spacing.sm,
-    alignItems: 'center',
+  hint: {
+    fontSize: 12, fontFamily: 'DMSans_700Bold', marginTop: 4,
   },
   pinDots: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 32,
   },
   pinDot: {
-    width: 16,
-    height: 16,
-    borderRadius: radii.full,
-    backgroundColor: colors.surface.tertiary,
-    borderWidth: 1,
-    borderColor: colors.line,
-  },
-  pinDotActive: {
-    backgroundColor: colors.mint,
-    borderColor: colors.mint,
-  },
-  helperText: {
-    color: colors.textSecondary,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 13,
+    width: 18, height: 18, borderRadius: 9, borderWidth: 2,
   },
   errorText: {
-    color: colors.coral,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 13,
-    textAlign: 'center',
+    fontFamily: 'DMSans_500Medium', fontSize: 13,
+    textAlign: 'center', marginTop: 12,
   },
   keypad: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 'auto',
+    marginBottom: 16,
+    paddingHorizontal: 16,
   },
   keypadKey: {
-    width: '30%',
-    aspectRatio: 1,
-    borderRadius: radii.lg,
-    backgroundColor: colors.panel,
-    borderWidth: 1,
-    borderColor: colors.line,
+    width: '28%',
+    aspectRatio: 1.6,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   keypadSpacer: {
-    width: '30%',
+    width: '28%',
+    aspectRatio: 1.6,
   },
   keypadText: {
-    color: colors.textPrimary,
-    fontFamily: 'Sora_700Bold',
-    fontSize: 24,
+    fontSize: 28, fontFamily: 'Sora_700Bold',
+  },
+  forgotPin: {
+    textAlign: 'center',
+    fontFamily: 'DMSans_700Bold',
+    fontSize: 14,
+    marginBottom: 32,
   },
 });

@@ -1,33 +1,37 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
 import { Transaction } from '../types/banking';
-import { colors, radii, spacing } from '../theme/tokens';
+import { useColors } from '../theme/ThemeModeContext';
 
 type TransactionRowProps = {
   item: Transaction;
   highlighted?: boolean;
 };
 
-export function TransactionRow({ item, highlighted = false }: TransactionRowProps) {
+export function TransactionRow({ item, highlighted }: TransactionRowProps) {
+  const colors = useColors();
   const isCredit = item.type === 'credit';
 
   return (
-    <View style={[styles.row, highlighted && styles.rowHighlighted]}>
-      <View style={styles.left}>
-        <View style={[styles.icon, isCredit ? styles.creditIcon : styles.debitIcon]}>
-          <Ionicons
-            name={isCredit ? 'arrow-down' : 'arrow-up'}
-            size={16}
-            color={isCredit ? '#8FF0CC' : '#FFC2B8'}
-          />
-        </View>
-        <View>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.meta}>{`${item.category}  .  ${item.date}`}</Text>
-        </View>
+    <View style={[
+      styles.row,
+      {
+        backgroundColor: highlighted ? colors.primarySoft : colors.surface,
+        borderBottomColor: colors.border,
+      },
+    ]}>
+      <View style={[styles.iconWrap, { backgroundColor: isCredit ? colors.successLight : colors.errorLight }]}>
+        <Ionicons
+          name={isCredit ? 'arrow-down' : 'arrow-up'}
+          size={16}
+          color={isCredit ? colors.success : colors.error}
+        />
       </View>
-      <Text style={[styles.amount, isCredit ? styles.creditAmount : styles.debitAmount]}>
+      <View style={styles.info}>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>{item.title}</Text>
+        <Text style={[styles.category, { color: colors.textSecondary }]}>{item.category} · {item.date}</Text>
+      </View>
+      <Text style={[styles.amount, { color: isCredit ? colors.success : colors.textPrimary }]}>
         {isCredit ? '+' : '-'}${item.amount.toFixed(2)}
       </Text>
     </View>
@@ -37,55 +41,33 @@ export function TransactionRow({ item, highlighted = false }: TransactionRowProp
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.panel,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 12,
+    borderBottomWidth: 1,
   },
-  rowHighlighted: {
-    borderColor: colors.mint,
-    backgroundColor: 'rgba(230, 209, 157, 0.14)',
-  },
-  left: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  icon: {
-    width: 36,
-    height: 36,
+  iconWrap: {
+    width: 40,
+    height: 40,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  creditIcon: {
-    backgroundColor: 'rgba(56, 143, 104, 0.25)',
-  },
-  debitIcon: {
-    backgroundColor: 'rgba(201, 79, 79, 0.25)',
+  info: {
+    flex: 1,
+    gap: 2,
   },
   title: {
-    color: colors.textPrimary,
     fontFamily: 'DMSans_700Bold',
     fontSize: 14,
   },
-  meta: {
-    color: colors.textSecondary,
+  category: {
     fontFamily: 'DMSans_500Medium',
-    fontSize: 11,
+    fontSize: 12,
   },
   amount: {
     fontFamily: 'Sora_700Bold',
     fontSize: 14,
-  },
-  creditAmount: {
-    color: colors.mint,
-  },
-  debitAmount: {
-    color: colors.coral,
   },
 });

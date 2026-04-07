@@ -10,135 +10,29 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-
-import { GradientShell } from '../components/GradientShell';
-import { colors, radii, spacing } from '../theme/tokens';
+import { useColors } from '../theme/ThemeModeContext';
 
 type SignInScreenProps = {
   onSignIn: (identifier: string) => void;
   onBack: () => void;
+  onSignUp: () => void;
 };
 
-function InputField({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  secureTextEntry,
-  error,
-  keyboardType,
-  autoCapitalize,
-}: {
-  label: string;
-  value: string;
-  onChangeText: (v: string) => void;
-  placeholder: string;
-  secureTextEntry?: boolean;
-  error?: string;
-  keyboardType?: 'default' | 'email-address';
-  autoCapitalize?: 'none' | 'sentences';
-}) {
-  const [focused, setFocused] = useState(false);
-  const [hidden, setHidden] = useState(secureTextEntry ?? false);
-  const focusAnim = useRef(new Animated.Value(0)).current;
-
-  const handleFocus = () => {
-    setFocused(true);
-    Animated.timing(focusAnim, { toValue: 1, duration: 180, useNativeDriver: false }).start();
-  };
-  const handleBlur = () => {
-    setFocused(false);
-    Animated.timing(focusAnim, { toValue: 0, duration: 180, useNativeDriver: false }).start();
-  };
-
-  const borderColor = focusAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [error ? colors.coral : colors.line, error ? colors.coral : colors.mint],
-  });
-
-  return (
-    <View style={inputStyles.wrapper}>
-      <Text style={inputStyles.label}>{label}</Text>
-      <Animated.View style={[inputStyles.inputRow, { borderColor }]}>
-        <TextInput
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor={colors.textSecondary}
-          secureTextEntry={hidden}
-          keyboardType={keyboardType ?? 'default'}
-          autoCapitalize={autoCapitalize ?? 'sentences'}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          style={inputStyles.input}
-        />
-        {secureTextEntry && (
-          <Pressable onPress={() => setHidden(h => !h)} style={inputStyles.eyeBtn} hitSlop={8}>
-            <Ionicons
-              name={hidden ? 'eye-outline' : 'eye-off-outline'}
-              size={18}
-              color={focused ? colors.mint : colors.textSecondary}
-            />
-          </Pressable>
-        )}
-      </Animated.View>
-      {error ? <Text style={inputStyles.error}>{error}</Text> : null}
-    </View>
-  );
-}
-
-const inputStyles = StyleSheet.create({
-  wrapper: { gap: 6 },
-  label: {
-    color: colors.textSecondary,
-    fontFamily: 'DMSans_700Bold',
-    fontSize: 13,
-    marginLeft: 2,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.panel,
-    borderWidth: 1.5,
-    borderRadius: radii.button,
-    paddingHorizontal: 14,
-  },
-  input: {
-    flex: 1,
-    paddingVertical: 14,
-    color: colors.textPrimary,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 15,
-  },
-  eyeBtn: { padding: 4 },
-  error: {
-    color: colors.coral,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 12,
-    marginLeft: 2,
-  },
-});
-
-export function SignInScreen({ onSignIn, onBack }: SignInScreenProps) {
+export function SignInScreen({ onSignIn, onBack, onSignUp }: SignInScreenProps) {
+  const colors = useColors();
   const [identifier, setIdentifier] = useState('');
   const [passcode, setPasscode] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const trimmedIdentifier = identifier.trim();
-  const identifierIsValid =
-    trimmedIdentifier.includes('@') || trimmedIdentifier.length >= 6;
+  const identifierIsValid = trimmedIdentifier.includes('@') || trimmedIdentifier.length >= 6;
   const passcodeIsValid = passcode.trim().length >= 6;
   const formIsValid = identifierIsValid && passcodeIsValid;
 
-  const identifierError =
-    trimmedIdentifier.length > 0 && !identifierIsValid
-      ? 'Enter a valid email or client ID'
-      : '';
-  const passcodeError =
-    passcode.length > 0 && !passcodeIsValid ? 'At least 6 characters required' : '';
-
   return (
-    <GradientShell>
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -149,50 +43,83 @@ export function SignInScreen({ onSignIn, onBack }: SignInScreenProps) {
           showsVerticalScrollIndicator={false}
         >
           {/* Back */}
-          <Pressable style={styles.backBtn} onPress={onBack} hitSlop={8}>
-            <Ionicons name="arrow-back" size={18} color={colors.textPrimary} />
+          <Pressable style={[styles.backBtn, { backgroundColor: colors.surfaceSecondary, borderColor: colors.border }]} onPress={onBack}>
+            <Ionicons name="arrow-back" size={20} color={colors.textPrimary} />
           </Pressable>
 
-          {/* Brand mark */}
+          {/* Logo */}
           <View style={styles.logoRow}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoLetter}>M</Text>
+            <View style={[styles.logoCircle, { backgroundColor: colors.primary }]}>
+              <Ionicons name="wallet" size={24} color="#FFFFFF" />
             </View>
-            <Text style={styles.logoLabel}>MoolaPay</Text>
           </View>
 
-          {/* Heading */}
+          {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Welcome back</Text>
-            <Text style={styles.subtitle}>Sign in to continue to your account</Text>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>Login to Your{'\n'}Account</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Enter your credentials to access your account
+            </Text>
           </View>
 
           {/* Form */}
           <View style={styles.form}>
-            <InputField
-              label="Email or Client ID"
-              value={identifier}
-              onChangeText={setIdentifier}
-              placeholder="name@example.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              error={identifierError}
-            />
-            <InputField
-              label="Passcode"
-              value={passcode}
-              onChangeText={setPasscode}
-              placeholder="Enter your passcode"
-              secureTextEntry
-              error={passcodeError}
-            />
+            {/* Email Input */}
+            <View style={styles.inputWrapper}>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Email or Phone</Text>
+              <View style={[styles.inputRow, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
+                <Ionicons name="mail-outline" size={18} color={colors.textTertiary} style={{ marginRight: 10 }} />
+                <TextInput
+                  value={identifier}
+                  onChangeText={setIdentifier}
+                  placeholder="name@example.com"
+                  placeholderTextColor={colors.textTertiary}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  style={[styles.input, { color: colors.textPrimary }]}
+                />
+              </View>
+            </View>
 
-            <Pressable style={styles.forgotBtn}>
-              <Text style={styles.forgotText}>Forgot passcode?</Text>
-            </Pressable>
+            {/* Password Input */}
+            <View style={styles.inputWrapper}>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Password</Text>
+              <View style={[styles.inputRow, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
+                <Ionicons name="lock-closed-outline" size={18} color={colors.textTertiary} style={{ marginRight: 10 }} />
+                <TextInput
+                  value={passcode}
+                  onChangeText={setPasscode}
+                  placeholder="Enter your password"
+                  placeholderTextColor={colors.textTertiary}
+                  secureTextEntry={!showPassword}
+                  style={[styles.input, { color: colors.textPrimary }]}
+                />
+                <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={8}>
+                  <Ionicons
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={18}
+                    color={colors.textTertiary}
+                  />
+                </Pressable>
+              </View>
+            </View>
 
+            {/* Remember & Forgot */}
+            <View style={styles.optionsRow}>
+              <View style={styles.rememberRow}>
+                <View style={[styles.checkbox, { borderColor: colors.primary, backgroundColor: colors.primary }]}>
+                  <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                </View>
+                <Text style={[styles.rememberText, { color: colors.textSecondary }]}>Remember me</Text>
+              </View>
+              <Pressable>
+                <Text style={[styles.forgotText, { color: colors.primary }]}>Forgot Password?</Text>
+              </Pressable>
+            </View>
+
+            {/* Sign In Button */}
             <Pressable
-              style={[styles.primaryBtn, !formIsValid && styles.primaryBtnDisabled]}
+              style={[styles.primaryBtn, { backgroundColor: colors.primary }, !formIsValid && styles.btnDisabled]}
               onPress={() => onSignIn(trimmedIdentifier)}
               disabled={!formIsValid}
             >
@@ -201,167 +128,180 @@ export function SignInScreen({ onSignIn, onBack }: SignInScreenProps) {
 
             {/* Divider */}
             <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
+              <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+              <Text style={[styles.dividerText, { color: colors.textTertiary }]}>or continue with</Text>
+              <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
             </View>
 
-            {/* Biometric */}
-            <Pressable style={styles.biometricBtn}>
-              <View style={styles.biometricIcon}>
-                <Ionicons name="finger-print-outline" size={22} color={colors.mint} />
-              </View>
-              <Text style={styles.biometricText}>Sign in with Biometrics</Text>
-            </Pressable>
+            {/* Social Buttons */}
+            <View style={styles.socialRow}>
+              <Pressable style={[styles.socialBtn, { backgroundColor: colors.surfaceSecondary, borderColor: colors.border }]}>
+                <Ionicons name="logo-google" size={20} color={colors.textPrimary} />
+              </Pressable>
+              <Pressable style={[styles.socialBtn, { backgroundColor: colors.surfaceSecondary, borderColor: colors.border }]}>
+                <Ionicons name="logo-apple" size={20} color={colors.textPrimary} />
+              </Pressable>
+              <Pressable style={[styles.socialBtn, { backgroundColor: colors.surfaceSecondary, borderColor: colors.border }]}>
+                <Ionicons name="finger-print" size={20} color={colors.textPrimary} />
+              </Pressable>
+            </View>
           </View>
 
           {/* Footer */}
-          <Text style={styles.footer}>
-            Your account is protected with end-to-end encryption.
-          </Text>
+          <Pressable onPress={onSignUp} style={styles.footer}>
+            <Text style={[styles.footerText, { color: colors.textSecondary }]}>
+              Don't have an account?{' '}
+              <Text style={{ color: colors.primary, fontFamily: 'DMSans_700Bold' }}>Sign Up</Text>
+            </Text>
+          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
-    </GradientShell>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.xl,
-    gap: spacing.lg,
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+    gap: 20,
   },
   backBtn: {
-    marginTop: spacing.sm,
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: colors.panel,
-    borderWidth: 1,
-    borderColor: colors.line,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  // Brand
-  logoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: spacing.md,
-  },
-  logoCircle: {
+    marginTop: 16,
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: colors.mint,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoLetter: {
-    color: '#fff',
-    fontFamily: 'Sora_700Bold',
-    fontSize: 22,
-    lineHeight: 26,
+  logoRow: {
+    alignItems: 'center',
+    marginTop: 8,
   },
-  logoLabel: {
-    color: colors.textPrimary,
-    fontFamily: 'Sora_700Bold',
-    fontSize: 20,
+  logoCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  // Heading
   header: {
-    gap: 6,
+    gap: 8,
+    alignItems: 'center',
   },
   title: {
-    color: colors.textPrimary,
+    fontSize: 26,
     fontFamily: 'Sora_700Bold',
-    fontSize: 28,
-    lineHeight: 36,
+    lineHeight: 34,
+    textAlign: 'center',
   },
   subtitle: {
-    color: colors.textSecondary,
+    fontSize: 14,
+    fontFamily: 'DMSans_500Medium',
+    textAlign: 'center',
+  },
+  form: {
+    gap: 16,
+  },
+  inputWrapper: {
+    gap: 6,
+  },
+  inputLabel: {
+    fontFamily: 'DMSans_700Bold',
+    fontSize: 13,
+    marginLeft: 2,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    height: 52,
+  },
+  input: {
+    flex: 1,
     fontFamily: 'DMSans_500Medium',
     fontSize: 15,
   },
-  // Form
-  form: {
-    gap: spacing.md,
+  optionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  forgotBtn: {
-    alignSelf: 'flex-end',
-    marginTop: -4,
+  rememberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rememberText: {
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 13,
   },
   forgotText: {
-    color: colors.mint,
     fontFamily: 'DMSans_700Bold',
     fontSize: 13,
   },
   primaryBtn: {
-    backgroundColor: colors.mint,
-    borderRadius: radii.button,
+    borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 4,
   },
-  primaryBtnDisabled: {
+  btnDisabled: {
     opacity: 0.45,
   },
   primaryBtnText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontFamily: 'Sora_700Bold',
     fontSize: 16,
-    letterSpacing: 0.2,
   },
-  // Divider
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.line,
   },
   dividerText: {
-    color: colors.textSecondary,
     fontFamily: 'DMSans_500Medium',
     fontSize: 13,
   },
-  // Biometric
-  biometricBtn: {
+  socialRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    borderWidth: 1.5,
-    borderColor: colors.line,
-    borderRadius: radii.button,
-    paddingVertical: 14,
-    backgroundColor: colors.panel,
+    gap: 16,
   },
-  biometricIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: 'rgba(21,107,91,0.1)',
+  socialBtn: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  biometricText: {
-    color: colors.textPrimary,
-    fontFamily: 'DMSans_700Bold',
-    fontSize: 14,
-  },
-  // Footer
   footer: {
-    color: colors.textSecondary,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 12,
-    textAlign: 'center',
-    lineHeight: 18,
+    alignItems: 'center',
     marginTop: 'auto',
-    paddingTop: spacing.lg,
+    paddingTop: 16,
+  },
+  footerText: {
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 14,
   },
 });

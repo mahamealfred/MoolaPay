@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-
-import { colors, radii, spacing } from '../theme/tokens';
+import { Ionicons } from '@expo/vector-icons';
+import { useColors } from '../theme/ThemeModeContext';
+import { radii, spacing } from '../theme/tokens';
 
 type BalanceCardProps = {
   name: string;
@@ -9,15 +9,17 @@ type BalanceCardProps = {
 };
 
 export function BalanceCard({ name, balance }: BalanceCardProps) {
+  const colors = useColors();
+
   return (
-    <LinearGradient colors={colors.gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.primary }]}>
       <View style={styles.topRow}>
         <View>
           <Text style={styles.label}>Available Balance</Text>
           <Text style={styles.balance}>${balance.toLocaleString(undefined, { maximumFractionDigits: 2 })}</Text>
         </View>
-        <View style={styles.pillMuted}>
-          <Text style={styles.pillMutedText}>MoolaPay Plus</Text>
+        <View style={styles.pill}>
+          <Text style={styles.pillText}>MoolaPay Plus</Text>
         </View>
       </View>
 
@@ -26,13 +28,13 @@ export function BalanceCard({ name, balance }: BalanceCardProps) {
 
       <View style={styles.row}>
         <Pressable style={styles.primaryAction}>
-          <Text style={styles.primaryActionText}>Add Money</Text>
+          <Text style={[styles.primaryActionText, { color: colors.primary }]}>Add Money</Text>
         </Pressable>
         <Pressable style={styles.secondaryAction}>
           <Text style={styles.secondaryActionText}>Withdraw</Text>
         </Pressable>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -41,8 +43,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
     padding: spacing.lg,
     gap: 10,
-    borderWidth: 1,
-    borderColor: colors.primary.dark,
   },
   topRow: {
     flexDirection: 'row',
@@ -50,23 +50,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   label: {
-    color: colors.text.secondary,
+    color: 'rgba(255,255,255,0.7)',
     fontSize: 13,
     fontFamily: 'DMSans_500Medium',
   },
-  name: {
-    color: colors.text.tertiary,
-    fontSize: 15,
-    fontFamily: 'DMSans_700Bold',
-  },
   balance: {
-    color: colors.text.inverse,
+    color: '#FFFFFF',
     fontSize: 33,
     fontFamily: 'Sora_700Bold',
   },
+  name: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 15,
+    fontFamily: 'DMSans_700Bold',
+  },
   cardNumber: {
     marginTop: spacing.sm,
-    color: colors.text.secondary,
+    color: 'rgba(255,255,255,0.6)',
     fontFamily: 'DMSans_700Bold',
     fontSize: 13,
     letterSpacing: 1,
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   primaryAction: {
-    backgroundColor: colors.secondary.main,
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -85,7 +85,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryActionText: {
-    color: colors.primary.main,
     fontFamily: 'DMSans_700Bold',
     fontSize: 13,
   },
@@ -94,24 +93,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: colors.primary.light,
-    backgroundColor: colors.primary.dark,
+    borderColor: 'rgba(255,255,255,0.3)',
     flex: 1,
     alignItems: 'center',
   },
   secondaryActionText: {
-    color: colors.text.tertiary,
+    color: 'rgba(255,255,255,0.8)',
     fontFamily: 'DMSans_700Bold',
     fontSize: 13,
   },
-  pillMuted: {
-    backgroundColor: colors.primary.dark,
+  pill: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 100,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
-  pillMutedText: {
-    color: colors.secondary.light,
+  pillText: {
+    color: '#FFFFFF',
     fontFamily: 'DMSans_700Bold',
     fontSize: 11,
   },

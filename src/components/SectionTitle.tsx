@@ -1,6 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-
-import { colors } from '../theme/tokens';
+import { useColors } from '../theme/ThemeModeContext';
 
 type SectionTitleProps = {
   title: string;
@@ -8,26 +7,25 @@ type SectionTitleProps = {
 };
 
 export function SectionTitle({ title, subtitle }: SectionTitleProps) {
+  const colors = useColors();
+
   return (
     <View style={styles.root}>
-      <Text style={styles.title}>{title}</Text>
-      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      <Text style={[styles.title, { color: colors.textPrimary }]}>{title}</Text>
+      {subtitle ? <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    gap: 2,
-  },
+  root: { gap: 4 },
   title: {
-    color: colors.textPrimary,
-    fontSize: 20,
     fontFamily: 'Sora_700Bold',
+    fontSize: 22,
   },
   subtitle: {
-    color: colors.textSecondary,
-    fontSize: 13,
     fontFamily: 'DMSans_500Medium',
+    fontSize: 13,
+    lineHeight: 20,
   },
 });

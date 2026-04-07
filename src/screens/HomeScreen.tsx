@@ -1,34 +1,32 @@
 import { useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { BalanceCard } from '../components/BalanceCard';
 import { GradientShell } from '../components/GradientShell';
-import type { RootTabsParamList } from '../navigation/AppNavigator';
+import type { RootStackParamList } from '../navigation/AppNavigator';
 import { SectionTitle } from '../components/SectionTitle';
-import { homeServices } from '../services/paymentServices';
 import { TransactionRow } from '../components/TransactionRow';
 import { useBankingData } from '../state/BankingDataContext';
-import { colors, spacing } from '../theme/tokens';
+import { useColors } from '../theme/ThemeModeContext';
+
+const quickActions = [
+  { id: 'send', icon: 'arrow-up-circle' as const, label: 'Send', screen: 'SendMoney' as const },
+  { id: 'request', icon: 'arrow-down-circle' as const, label: 'Request', screen: 'RequestMoney' as const },
+  { id: 'topup', icon: 'add-circle' as const, label: 'Top Up', screen: 'TransferToBank' as const },
+  { id: 'more', icon: 'grid' as const, label: 'More', screen: 'Activity' as const },
+];
 
 export function HomeScreen() {
-  const navigation = useNavigation<BottomTabNavigationProp<RootTabsParamList>>();
-  const { accountSummary, clearHighlightedTransaction, highlightedTransactionId, transactions, user, weeklySpend } = useBankingData();
-  const budgetLimit = 500;
-  const spendProgress = Math.min((weeklySpend / budgetLimit) * 100, 100);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const colors = useColors();
+  const { accountSummary, clearHighlightedTransaction, highlightedTransactionId, transactions, user } = useBankingData();
 
   useEffect(() => {
-    if (!highlightedTransactionId) {
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
-      clearHighlightedTransaction();
-    }, 4500);
-
-    return () => clearTimeout(timeoutId);
+    if (!highlightedTransactionId) return;
+    const t = setTimeout(() => clearHighlightedTransaction(), 4500);
+    return () => clearTimeout(t);
   }, [clearHighlightedTransaction, highlightedTransactionId]);
 
   const greeting = (() => {
@@ -41,80 +39,85 @@ export function HomeScreen() {
   return (
     <GradientShell>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Header */}
         <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.kicker}>{greeting}</Text>
-            <Text style={styles.headline}>{user.firstName}</Text>
+          <View style={styles.headerLeft}>
+            <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+              <Text style={styles.avatarText}>{user.firstName[0]}{user.lastName[0]}</Text>
+            </View>
+            <View>
+              <Text style={[styles.greeting, { color: colors.textSecondary }]}>{greeting} 👋</Text>
+              <Text style={[styles.userName, { color: colors.textPrimary }]}>{user.firstName} {user.lastName}</Text>
+            </View>
           </View>
-          <Pressable style={styles.notifyBtn}>
+          <Pressable
+            style={[styles.notifyBtn, { backgroundColor: colors.surfaceSecondary, borderColor: colors.border }]}
+            onPress={() => navigation.navigate('Notifications')}
+          >
             <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
+            <View style={[styles.notifyDot, { backgroundColor: colors.error }]} />
           </Pressable>
         </View>
 
-        <BalanceCard name={user.firstName} balance={accountSummary.availableBalance} />
+        {/* Balance Card */}
+        <View style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
+          <Text style={styles.balanceLabel}>Total Balance</Text>
+          <Text style={styles.balanceAmount}>
+            ${accountSummary.availableBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </Text>
+          <Text style={styles.balanceSub}>Current Balance</Text>
 
-        <View style={styles.metricsContainer}>
-          <View style={styles.metricChip}>
-            <Text style={styles.metricLabel}>Invested</Text>
-            <Text style={styles.metricValue}>${accountSummary.invested.toFixed(0)}</Text>
-          </View>
-          <View style={styles.metricChip}>
-            <Text style={styles.metricLabel}>Rewards</Text>
-            <Text style={styles.metricValue}>${accountSummary.rewards.toFixed(0)}</Text>
-          </View>
-          <View style={styles.metricChip}>
-            <Text style={styles.metricLabel}>This week</Text>
-            <Text style={styles.metricValue}>-${weeklySpend.toFixed(0)}</Text>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <SectionTitle title="Services" subtitle="Transfer, bill payment, airtime, utilities, and subscriptions" />
-          <View style={styles.servicesGrid}>
-            {homeServices.map((service) => (
-              <Pressable
-                key={service.id}
-                style={styles.serviceCard}
-                onPress={() =>
-                  navigation.navigate('Payments', {
-                    initialMode: service.mode,
-                    initialService: service.service,
-                  })
-                }
-              >
-                <View style={styles.serviceIconWrap}>
-                  <Ionicons name={service.icon} size={14} color={colors.sky} />
+          {/* Quick Actions */}
+          <View style={styles.quickActionsRow}>
+            {quickActions.map((action) => (
+              <Pressable key={action.id} style={styles.quickAction} onPress={() => navigation.navigate(action.screen)}>
+                <View style={styles.quickActionIcon}>
+                  <Ionicons name={action.icon} size={24} color="#FFFFFF" />
                 </View>
-                <Text style={styles.serviceTitle}>{service.title}</Text>
+                <Text style={styles.quickActionLabel}>{action.label}</Text>
               </Pressable>
             ))}
           </View>
         </View>
 
-        <View style={styles.budgetPanel}>
-          <View style={styles.budgetHeader}>
-            <Text style={styles.budgetTitle}>Weekly spending budget</Text>
-            <Text style={styles.budgetValue}>{spendProgress.toFixed(0)}%</Text>
+        {/* Metrics */}
+        <View style={styles.metricsRow}>
+          <View style={[styles.metricCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.metricIcon, { backgroundColor: colors.successLight }]}>
+              <Ionicons name="trending-up" size={16} color={colors.success} />
+            </View>
+            <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Income</Text>
+            <Text style={[styles.metricValue, { color: colors.textPrimary }]}>$1,450</Text>
           </View>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${spendProgress}%` }]} />
+          <View style={[styles.metricCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.metricIcon, { backgroundColor: colors.errorLight }]}>
+              <Ionicons name="trending-down" size={16} color={colors.error} />
+            </View>
+            <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Expenses</Text>
+            <Text style={[styles.metricValue, { color: colors.textPrimary }]}>$348</Text>
           </View>
-          <Text style={styles.budgetHint}>${weeklySpend.toFixed(2)} of ${budgetLimit.toFixed(2)} used</Text>
+          <View style={[styles.metricCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.metricIcon, { backgroundColor: colors.warningLight }]}>
+              <Ionicons name="star" size={16} color={colors.warning} />
+            </View>
+            <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Rewards</Text>
+            <Text style={[styles.metricValue, { color: colors.textPrimary }]}>${accountSummary.rewards.toFixed(0)}</Text>
+          </View>
         </View>
 
+        {/* Recent Transactions */}
         <View style={styles.section}>
-          <SectionTitle title="Recent Activity" subtitle="Your latest transactions" />
-          <View style={styles.transactionsList}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Recent Transactions</Text>
+            <Pressable onPress={() => navigation.navigate('Activity')}>
+              <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
+            </Pressable>
+          </View>
+          <View style={[styles.transactionsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             {transactions.slice(0, 4).map((item) => (
               <TransactionRow key={item.id} item={item} highlighted={item.id === highlightedTransactionId} />
             ))}
           </View>
-        </View>
- 
-        <View style={styles.summaryPanel}>
-          <Text style={styles.summaryLabel}>Rewards Balance</Text>
-          <Text style={styles.summaryValue}>${accountSummary.rewards.toFixed(2)}</Text>
-          <Text style={styles.summaryHint}>Earn more rewards with every transaction</Text>
         </View>
       </ScrollView>
     </GradientShell>
@@ -123,170 +126,102 @@ export function HomeScreen() {
 
 const styles = StyleSheet.create({
   content: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.xl,
-    paddingTop: spacing.sm,
-    gap: spacing.lg,
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+    paddingTop: 8,
+    gap: 20,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  kicker: {
-    color: colors.textSecondary,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 13,
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  headline: {
-    color: colors.textPrimary,
-    fontFamily: 'Sora_700Bold',
-    fontSize: 27,
+  avatar: {
+    width: 48, height: 48, borderRadius: 16,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  avatarText: {
+    color: '#FFFFFF', fontFamily: 'DMSans_700Bold', fontSize: 16,
+  },
+  greeting: {
+    fontFamily: 'DMSans_500Medium', fontSize: 13,
+  },
+  userName: {
+    fontFamily: 'Sora_700Bold', fontSize: 18,
   },
   notifyBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.surface.secondary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 44, height: 44, borderRadius: 14, borderWidth: 1,
+    alignItems: 'center', justifyContent: 'center',
   },
-  metricsContainer: {
-    flexDirection: 'row',
-    gap: spacing.sm,
+  notifyDot: {
+    position: 'absolute', top: 10, right: 10,
+    width: 8, height: 8, borderRadius: 4,
   },
-  metricChip: {
-    flex: 1,
-    backgroundColor: colors.surface.secondary,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.line,
-    padding: 12,
+  // Balance Card
+  balanceCard: {
+    borderRadius: 24,
+    padding: 24,
+    gap: 4,
   },
-  metricLabel: {
-    color: colors.textSecondary,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 11,
+  balanceLabel: {
+    color: 'rgba(255,255,255,0.7)', fontFamily: 'DMSans_500Medium', fontSize: 14,
   },
-  metricValue: {
-    marginTop: 4,
-    color: colors.textPrimary,
-    fontFamily: 'Sora_700Bold',
-    fontSize: 14,
+  balanceAmount: {
+    color: '#FFFFFF', fontFamily: 'Sora_700Bold', fontSize: 36, marginVertical: 4,
   },
-  section: {
-    gap: spacing.sm,
+  balanceSub: {
+    color: 'rgba(255,255,255,0.6)', fontFamily: 'DMSans_500Medium', fontSize: 12,
   },
-  servicesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 6,
-    marginTop: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  serviceCard: {
-    width: 72,
-    height: 88,
-    borderRadius: 18,
-    backgroundColor: colors.surface.secondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: 3,
-    shadowColor: colors.primary.dark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
-    gap: 6,
-  },
-  serviceIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.primary.main,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  serviceTitle: {
-    color: colors.text.primary,
-    fontFamily: 'DMSans_700Bold',
-    fontSize: 10,
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  serviceSubtitle: {
-    color: colors.textSecondary,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 12,
-    lineHeight: 18,
-  },
-  budgetPanel: {
-    borderRadius: 18,
-    backgroundColor: colors.surface.primary,
-    borderColor: colors.line,
-    borderWidth: 1,
-    padding: spacing.md,
-    gap: 8,
-  },
-  budgetHeader: {
+  quickActionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    marginTop: 20,
   },
-  budgetTitle: {
-    color: colors.textPrimary,
-    fontFamily: 'DMSans_700Bold',
-    fontSize: 13,
+  quickAction: {
+    alignItems: 'center', gap: 6,
   },
-  budgetValue: {
-    color: colors.mint,
-    fontFamily: 'Sora_700Bold',
-    fontSize: 14,
+  quickActionIcon: {
+    width: 48, height: 48, borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  progressTrack: {
-    height: 8,
-    borderRadius: 20,
-    backgroundColor: colors.surface.secondary,
-    overflow: 'hidden',
+  quickActionLabel: {
+    color: '#FFFFFF', fontFamily: 'DMSans_700Bold', fontSize: 12,
   },
-  progressFill: {
-    height: '100%',
-    borderRadius: 20,
-    backgroundColor: colors.mint,
+  // Metrics
+  metricsRow: {
+    flexDirection: 'row', gap: 10,
   },
-  budgetHint: {
-    color: colors.textSecondary,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 12,
+  metricCard: {
+    flex: 1, borderRadius: 16, borderWidth: 1, padding: 14, gap: 6,
   },
-  transactionsList: {
-    gap: spacing.sm,
+  metricIcon: {
+    width: 32, height: 32, borderRadius: 10,
+    alignItems: 'center', justifyContent: 'center',
   },
-  summaryPanel: {
-    borderRadius: 18,
-    backgroundColor: colors.surface.secondary,
-    borderColor: colors.primary.light,
-    borderWidth: 1,
-    padding: spacing.md,
-    gap: 2,
+  metricLabel: {
+    fontFamily: 'DMSans_500Medium', fontSize: 11, marginTop: 2,
   },
-  summaryLabel: {
-    color: colors.textSecondary,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 13,
+  metricValue: {
+    fontFamily: 'Sora_700Bold', fontSize: 16,
   },
-  summaryValue: {
-    color: colors.mint,
-    fontFamily: 'Sora_700Bold',
-    fontSize: 24,
+  // Transactions
+  section: { gap: 12 },
+  sectionHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  summaryHint: {
-    color: colors.textSecondary,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 12,
+  sectionTitle: {
+    fontFamily: 'Sora_700Bold', fontSize: 18,
+  },
+  seeAll: {
+    fontFamily: 'DMSans_700Bold', fontSize: 13,
+  },
+  transactionsCard: {
+    borderRadius: 16, borderWidth: 1, overflow: 'hidden',
   },
 });
