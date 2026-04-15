@@ -1,25 +1,33 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Transaction } from '../types/banking';
 import { useColors } from '../theme/ThemeModeContext';
+import type { RootStackParamList } from '../navigation/AppNavigator';
 
 type TransactionRowProps = {
   item: Transaction;
   highlighted?: boolean;
+  minimal?: boolean;
 };
 
-export function TransactionRow({ item, highlighted }: TransactionRowProps) {
+export function TransactionRow({ item, highlighted, minimal }: TransactionRowProps) {
   const colors = useColors();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const isCredit = item.type === 'credit';
 
   return (
-    <View style={[
-      styles.row,
-      {
-        backgroundColor: highlighted ? colors.primarySoft : colors.surface,
-        borderBottomColor: colors.border,
-      },
-    ]}>
+    <Pressable
+      style={[
+        styles.row,
+        {
+          backgroundColor: highlighted ? colors.primarySoft : colors.surface,
+          borderBottomColor: colors.border,
+        },
+      ]}
+      onPress={() => navigation.navigate('TransactionDetail', { transaction: item })}
+    >
       <View style={[styles.iconWrap, { backgroundColor: isCredit ? colors.successLight : colors.errorLight }]}>
         <Ionicons
           name={isCredit ? 'arrow-down' : 'arrow-up'}
@@ -29,12 +37,14 @@ export function TransactionRow({ item, highlighted }: TransactionRowProps) {
       </View>
       <View style={styles.info}>
         <Text style={[styles.title, { color: colors.textPrimary }]}>{item.title}</Text>
-        <Text style={[styles.category, { color: colors.textSecondary }]}>{item.category} · {item.date}</Text>
+        {!minimal && (
+          <Text style={[styles.category, { color: colors.textSecondary }]}>{item.category} · {item.date}</Text>
+        )}
       </View>
       <Text style={[styles.amount, { color: isCredit ? colors.success : colors.textPrimary }]}>
         {isCredit ? '+' : '-'}${item.amount.toFixed(2)}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 

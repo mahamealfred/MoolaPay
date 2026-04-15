@@ -25,6 +25,8 @@ import { SplitBillScreen } from '../screens/SplitBillScreen';
 import { InvoiceScreen } from '../screens/InvoiceScreen';
 import { ActivityScreen } from '../screens/ActivityScreen';
 import { QRCodeScreen } from '../screens/QRCodeScreen';
+import { CurrencyExchangeScreen } from '../screens/CurrencyExchangeScreen';
+import { TransactionDetailScreen } from '../screens/TransactionDetailScreen';
 import { useThemeMode, useColors } from '../theme/ThemeModeContext';
 import { lightColors, darkColors } from '../theme/tokens';
 
@@ -52,6 +54,8 @@ export type RootStackParamList = {
   Invoice: undefined;
   Activity: undefined;
   QRCode: undefined;
+  CurrencyExchange: undefined;
+  TransactionDetail: { transaction: import('../types/banking').Transaction };
 };
 
 type TabRoute = keyof RootTabsParamList;
@@ -187,6 +191,8 @@ function MainAppStack() {
       <AppStack.Screen name="Invoice" component={InvoiceScreen} />
       <AppStack.Screen name="Activity" component={ActivityScreen} />
       <AppStack.Screen name="QRCode" component={QRCodeScreen} />
+      <AppStack.Screen name="CurrencyExchange" component={CurrencyExchangeScreen} />
+      <AppStack.Screen name="TransactionDetail" component={TransactionDetailScreen} />
     </AppStack.Navigator>
   );
 }
